@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Churn Predictor</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #005a8d;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #005a8d;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #003d5b;
+        }
+
+        #result {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #005a8d;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            margin-bottom: 8px;
+            display: block;
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Customer Churn Predictor</h1>
+
+    <form id="churnForm">
+        <div class="input-group">
+            <label for="tenure">Tenure (months):</label>
+            <input type="number" id="tenure" name="tenure" required>
+        </div>
+
+        <div class="input-group">
+            <label for="monthlyCharges">Monthly Charges:</label>
+            <input type="number" id="monthlyCharges" name="monthlyCharges" step="0.01" required>
+        </div>
+
+        <div class="input-group">
+            <label for="totalCharges">Total Charges:</label>
+            <input type="number" id="totalCharges" name="totalCharges" step="0.01" required>
+        </div>
+
+        <div class="input-group">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="PaperlessBilling">Paperless Billing:</label>
+            <select id="PaperlessBilling" name="PaperlessBilling">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="InternetService">Internet Service:</label>
+            <select id="InternetService" name="InternetService">
+                <option value="DSL">DSL</option>
+                <option value="Fiber optic">Fiber optic</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="Contract">Contract:</label>
+            <select id="contract" name="Contract">
+                <option value="Month-to-month">Month-to-month</option>
+                <option value="One year">One year</option>
+                <option value="Two year">Two year</option>
+            </select>
+        </div>
+
+        <button type="button" onclick="predictChurn()">Predict Churn</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    function predictChurn() {
+        const formData = {
+            tenure: parseFloat(document.getElementById('tenure').value),
+            MonthlyCharges: parseFloat(document.getElementById('monthlyCharges').value),
+            TotalCharges: parseFloat(document.getElementById('totalCharges').value),
+            gender: document.getElementById('gender').value,
+            PaperlessBilling: document.getElementById('PaperlessBilling').value,
+            InternetService: document.getElementById('InternetService').value,
+            Contract: document.getElementById('contract').value
+        };
+
+        fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('result');
+            const errorMessage = document.querySelector('.error-message'); // Select any existing error message
+            if (errorMessage) {
+                errorMessage.remove(); // Remove the error message if it exists
+            }
+            if (data.error) {
+                // Display error message
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('error-message');
+                errorDiv.textContent = `Error: ${data.error}`;
+                resultDiv.parentNode.insertBefore(errorDiv, resultDiv.nextSibling);
+            } else {
+                // Display success result
+                resultDiv.textContent = `Churn Prediction: ${data.prediction} (Probability: ${data.churn_probability.toFixed(2)})`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.createElement('div');
+            errorDiv.classList.add('error-message');
+            errorDiv.textContent = "An error occurred.";
+            resultDiv.parentNode.insertBefore(errorDiv, resultDiv.nextSibling);
+        });
+    }
+</script>
+</body>
+</html>
