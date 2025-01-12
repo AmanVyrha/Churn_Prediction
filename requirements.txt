@@ -1,5 +1,5 @@
-Flask
-gunicorn
-pandas
-scikit-learn
-joblib
+Flask==2.2.2
+gunicorn==20.1.0
+pandas==1.5.2
+scikit-learn==1.2.0
+joblib==1.2.0
